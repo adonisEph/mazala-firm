@@ -1,0 +1,14 @@
+name = "mazala-firm"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = ".vercel/output/static"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mazala-firm-db"
+database_id = "18f351ce-8dfe-447f-b2e7-501f36f81b34"
+
+# Secrets à configurer via `npx wrangler pages secret put <NAME>` :
+#   JWT_SECRET        — signature des sessions admin
+#   RESEND_API_KEY    — notifications email du formulaire contact
+#   ADMIN_NOTIFY_EMAIL — destinataire (contact@mazala…)
+#   ADMIN_PASSWORD    — mot de passe du back-office (hashé à la 1re connexion ? voir auth)

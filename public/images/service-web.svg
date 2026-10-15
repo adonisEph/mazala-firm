@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 425.438 368.795">
+                            <g id="web-development-svgrepo-com" transform="translate(-43.282 -67.222)">
+                                <ellipse id="Ellipse_52" data-name="Ellipse 52" cx="182.284" cy="14.371" rx="182.284"
+                                    ry="14.371" transform="translate(73.716 407.275)" fill="#edb937" />
+                                <path id="Path_163" data-name="Path 163"
+                                    d="M65.982,67.223H446.019a22.769,22.769,0,0,1,22.7,22.7V324.032H43.282V89.924a22.769,22.769,0,0,1,22.7-22.7h0Z"
+                                    fill="#666" />
+                                <g id="Group_242" data-name="Group 242">
+                                    <path id="Path_164" data-name="Path 164"
+                                        d="M58.694,308.617H453.3V89.924a7.347,7.347,0,0,0-7.285-7.288H65.982A7.347,7.347,0,0,0,58.7,89.924V308.617Z"
+                                        fill="#fff" />
+                                    <path id="Path_165" data-name="Path 165"
+                                        d="M468.718,324.031v24.827c0,12.488-11.26,22.7-25.024,22.7H68.307c-13.764,0-25.024-10.214-25.024-22.7V324.031H468.718Z"
+                                        fill="#fff" />
+                                </g>
+                                <circle id="Ellipse_53" data-name="Ellipse 53" cx="7.816" cy="7.816" r="7.816"
+                                    transform="translate(248.184 338.987)" fill="#b6b6b8" />
+                                <path id="Path_166" data-name="Path 166"
+                                    d="M305.066,407.273l36.1,11.566H170.836l29.123-11.566V371.56h105.1v35.713Z"
+                                    fill="#c2c2c4" />
+                                <path id="Path_167" data-name="Path 167"
+                                    d="M199.961,407.273H305.067l36.1,11.566v4.98H170.838v-4.98Z" fill="#ecf0f1" />
+                                <path id="Path_168" data-name="Path 168" d="M199.961,371.559H305.067v35.713Z"
+                                    fill="#919191" />
+                                <rect id="Rectangle_119" data-name="Rectangle 119" width="27.742" height="7.016"
+                                    transform="translate(75.849 97.5)" fill="#20d0c2" />
+                                <rect id="Rectangle_120" data-name="Rectangle 120" width="85.269" height="7.016"
+                                    transform="translate(108.303 97.5)" fill="#ff5b62" />
+                                <g id="Group_243" data-name="Group 243">
+                                    <rect id="Rectangle_121" data-name="Rectangle 121" width="26.502" height="7.016"
+                                        transform="translate(197.055 97.5)" fill="#fad24d" />
+                                </g>
+                                <g id="Group_246" data-name="Group 246">
+                                    <rect id="Rectangle_136" data-name="Rectangle 136" width="2.807" height="8.416"
+                                        transform="translate(120.375 111.093)" fill="#fff" />
+                                    <rect id="Rectangle_137" data-name="Rectangle 137" width="2.807" height="8.416"
+                                        transform="translate(193.193 138.689)" fill="#fff" />
+                                </g>
+                                <g id="Group_249" data-name="Group 249">
+                                    <rect id="Rectangle_146" data-name="Rectangle 146" width="2.807" height="8.416"
+                                        transform="translate(120.375 216.577)" fill="#fff" />
+                                    <rect id="Rectangle_147" data-name="Rectangle 147" width="2.807" height="8.416"
+                                        transform="translate(193.193 244.183)" fill="#fff" />
+                                </g>
+                                <g id="Group_250" data-name="Group 250">
+                                    <rect id="Rectangle_148" data-name="Rectangle 148" width="147.352" height="33.984"
+                                        transform="translate(290.223 97.5)" fill="#dce3db" />
+                                    <path id="Path_169" data-name="Path 169" d="M290.221,136.3H360.4V181.15H290.221Z"
+                                        fill="#dce3db" />
+                                    <path id="Path_170" data-name="Path 170" d="M367.4,136.3h70.178V181.15H367.4Z"
+                                        fill="#dce3db" />
+                                    <path id="Path_171" data-name="Path 171"
+                                        d="M290.423,187.581H437.376v2.172H290.423Zm0,20.534h96.534v2.172H290.423Zm0-6.846H437.376v2.172H290.423Zm0-6.843H437.376V196.6H290.423Z"
+                                        fill="#dce3db" />
+                                    <path id="Path_172" data-name="Path 172"
+                                        d="M290.048,215.622h43.793v43.42H290.048Zm103.913,0h43.795v43.42H393.961Zm-51.956,0H385.8v43.42H342.005Z"
+                                        fill="#dce3db" />
+                                    <path id="Path_173" data-name="Path 173"
+                                        d="M290.423,265.088H437.376v2.172H290.423Zm0,20.534h96.534v2.172H290.423Zm0-6.845H437.376v2.172H290.423Zm0-6.843H437.376v2.172H290.423Z"
+                                        fill="#dce3db" />
+                                </g>
+                                <g id="Group_251" data-name="Group 251" transform="translate(-214.199 34.708)">
+                                    <rect id="Rectangle_148-2" data-name="Rectangle 148" width="147.352" height="33.984"
+                                        transform="translate(290.223 97.5)" fill="#dce3db" />
+                                    <path id="Path_169-2" data-name="Path 169" d="M290.221,136.3H360.4V181.15H290.221Z"
+                                        transform="translate(0.002 13.025)" fill="#dce3db" />
+                                    <path id="Path_170-2" data-name="Path 170" d="M367.4,136.3h70.178V181.15H367.4Z"
+                                        transform="translate(0.18 13.025)" fill="#dce3db" />
+                                    <path id="Path_172-2" data-name="Path 172"
+                                        d="M290.048,215.622h43.793v43.42H290.048Zm103.913,0h43.795v43.42H393.961Zm-51.956,0H385.8v43.42H342.005Z"
+                                        transform="translate(0 -5.956)" fill="#dce3db" />
+                                </g>
+                            </g>
+                        </svg>
