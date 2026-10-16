@@ -40,7 +40,7 @@ const LINKEDIN_SVG = (
   </svg>
 );
 
-const SERVICE_IMAGES = ["/images/023-ui design.svg", "/images/service-web.svg", "/images/service-mobile.svg"];
+const SERVICE_IMAGES = ["/images/ui-design.svg", "/images/service-web.svg", "/images/service-mobile.svg"];
 
 export default function MazalaPage({ projects, members }: { projects: CmsProject[]; members: CmsMember[] }) {
   const [lang, setLang] = useLang();
