@@ -26,6 +26,9 @@ export const T = {
       title: "Some of our projects",
       subtitle: "Bellow are some of the latest projects we have made, check it out !",
       viewAll: "VIEW ALL PROJECTS",
+      viewProject: "View project",
+      back: "Back to portfolio",
+      platform: { web: "Web", mobile: "Mobile", desktop: "Desktop" },
     },
     team: {
       title: "Meet the team",
@@ -79,6 +82,9 @@ export const T = {
       title: "Quelques-uns de nos projets",
       subtitle: "Voici quelques-uns de nos derniers projets — jetez-y un œil !",
       viewAll: "TOUS LES PROJETS",
+      viewProject: "Voir le projet",
+      back: "Retour au portfolio",
+      platform: { web: "Web", mobile: "Mobile", desktop: "Desktop" },
     },
     team: {
       title: "Notre équipe",

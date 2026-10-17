@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HERO_SVG } from "./hero-illustration";
+import { ProjectCard } from "./ProjectCard";
+import { SocialIcon, parseSocials, SOCIAL_LABELS } from "./SocialIcons";
 import { T, type Lang } from "@/lib/i18n";
 import { useLang } from "@/lib/useLang";
 
@@ -14,6 +16,8 @@ export interface CmsProject {
   description_en: string;
   techs: string;
   image_url: string;
+  project_url: string;
+  platform: "" | "web" | "mobile" | "desktop";
 }
 
 export interface CmsMember {
@@ -24,21 +28,16 @@ export interface CmsMember {
   bio_fr: string;
   bio_en: string;
   photo_url: string;
-  linkedin: string;
+  socials: string; // JSON : [{ type, url }]
 }
 
 gsap.registerPlugin(ScrollTrigger);
 
-const LINKEDIN_SVG = (
-  <svg viewBox="0 0 291.319 291.319" style={{ enableBackground: "new 0 0 291.319 291.319" } as React.CSSProperties}>
-    <g>
-      <path style={{ fill: "#0E76A8" }} d="M145.659,0c80.45,0,145.66,65.219,145.66,145.66s-65.21,145.659-145.66,145.659S0,226.1,0,145.66S65.21,0,145.659,0z" />
-      <path style={{ fill: "#FFFFFF" }} d="M82.079,200.136h27.275v-90.91H82.079V200.136z M188.338,106.077c-13.237,0-25.081,4.834-33.483,15.504v-12.654H127.48v91.21h27.375v-49.324c0-10.424,9.55-20.593,21.512-20.593s14.912,10.169,14.912,20.338v49.57h27.275v-51.6C218.553,112.686,201.584,106.077,188.338,106.077z M95.589,100.141c7.538,0,13.656-6.118,13.656-13.656S103.127,72.83,95.589,72.83s-13.656,6.118-13.656,13.656S88.051,100.141,95.589,100.141z" />
-    </g>
-  </svg>
-);
 
 const SERVICE_IMAGES = ["/images/ui-design.svg", "/images/service-web.svg", "/images/service-mobile.svg"];
+// Nombre max de projets « non vedettes » affichés dans la grille de la home —
+// le reste est visible sur /projects.
+const HOME_GRID_MAX = 6;
 
 export default function MazalaPage({ projects, members }: { projects: CmsProject[]; members: CmsMember[] }) {
   const [lang, setLang] = useLang();
@@ -95,11 +94,11 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
           .from("#thirdService", { opacity: 0, y: 100, duration: 0.7 });
 
         projects.forEach((_, i) => {
-          gsap.from(`#project-${i + 1}`, {
-            scrollTrigger: { trigger: `#project-${i + 1}`, start: "top 80%" },
+          gsap.from(`#grid-project-${i + 1}`, {
+            scrollTrigger: { trigger: `#grid-project-${i + 1}`, start: "top 80%" },
             opacity: 0,
-            y: 80,
-            duration: 0.8,
+            y: 60,
+            duration: 0.7,
           });
         });
         members.forEach((_, i) => {
@@ -281,39 +280,20 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
         </div>
       </section>
 
-      {/* ── Portfolio (CMS) ── */}
+      {/* ── Portfolio (CMS) : grille uniforme, toutes les cartes identiques ── */}
       <section id="portfolio" className="flex flex-col items-center justify-center px-4 md:px-10 py-20">
         <h2 className="font-title text-3xl md:text-4xl text-ternary">{t.portfolio.title}</h2>
         <div className="text-lg lg:text-xl mt-2 text-text-sec mb-20 text-center">{t.portfolio.subtitle}</div>
-        <div className="space-y-6 flex flex-col items-center px-4 w-full">
-          {projects.map((p, i) => (
-            <div
-              key={p.id}
-              id={`project-${i + 1}`}
-              className="flex relative flex-col-reverse md:flex-row items-center justify-center bg-secondary text-white rounded-xl md:rounded-3xl lg:space-x-4 w-full md:w-5/6 lg:w-2/3 pb-4 md:pb-0 shadow-2xl"
-            >
-              <div className="w-full lg:w-1/2 space-y-2 px-4 mt-4 md:mt-0">
-                <h3 className="font-title text-2xl lg:text-3xl">{p.title}</h3>
-                <p className="md:text-lg text-gray-200">{lang === "fr" ? p.description_fr : p.description_en}</p>
-                <div className="flex flex-wrap gap-y-1 gap-x-1 items-center">
-                  {p.techs.split(",").filter(Boolean).map((tech, ti) => (
-                    <div key={`${p.id}-${ti}`} className="px-4 text-sm py-2 text-white inline-block rounded-full flex justify-center items-center bg-ternary">
-                      {tech.trim()}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="w-full lg:w-1/2 h-72 md:h-96 rounded-t-xl md:rounded-t-none md:rounded-r-2xl flex justify-center items-center bg-ternary overflow-hidden">
-                {p.image_url ? (
-                  <img src={p.image_url} alt={p.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                ) : null}
-              </div>
-            </div>
-          ))}
-          <div className="w-2/3 md:w-5/6 lg:w-2/3 flex justify-center md:justify-end pt-10">
-            <button className="text-white rounded-full bg-ternary py-2 px-6">
+        <div className="flex flex-col items-center px-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+            {projects.slice(0, HOME_GRID_MAX).map((p, i) => (
+              <ProjectCard key={p.id} p={p} lang={lang} id={`grid-project-${i + 1}`} />
+            ))}
+          </div>
+          <div className="w-full max-w-6xl flex justify-center md:justify-end pt-10">
+            <a href="/projects" className="text-white rounded-full bg-ternary py-2 px-6 transition-all duration-300 hover:bg-ternary-light hover:scale-105 inline-block">
               {t.portfolio.viewAll}
-            </button>
+            </a>
           </div>
         </div>
       </section>
@@ -342,11 +322,22 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
                 <p className="text-base md:text-lg text-center px-2">
                   {lang === "fr" ? m.bio_fr : m.bio_en}
                 </p>
-                {m.linkedin && (
-                  <a href={m.linkedin} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full shadow-2xl block hover:scale-110 transition-transform">
-                    {LINKEDIN_SVG}
-                  </a>
-                )}
+                {parseSocials(m.socials).length ? (
+                  <div className="flex flex-wrap justify-center gap-3 pt-1">
+                    {parseSocials(m.socials).map((s, si) => (
+                      <a
+                        key={si}
+                        href={s.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={SOCIAL_LABELS[s.type]}
+                        className="w-12 h-12 rounded-full shadow-2xl block hover:scale-110 transition-transform"
+                      >
+                        <SocialIcon type={s.type} />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}

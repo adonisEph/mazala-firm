@@ -15,9 +15,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = schema.parse(await req.json());
     const user = await db()
-      .prepare(`SELECT id, email, name, password_hash FROM admin_users WHERE email = ?`)
+      .prepare(`SELECT id, email, name, password_hash, role, permissions FROM admin_users WHERE email = ?`)
       .bind(body.email.trim().toLowerCase())
-      .first<{ id: number; email: string; name: string; password_hash: string }>();
+      .first<{ id: number; email: string; name: string; password_hash: string; role: "superadmin" | "admin"; permissions: string }>();
 
     // Vérification même si l'utilisateur n'existe pas (anti-énumération : temps constant côté PBKDF2).
     const hash = user?.password_hash ?? "pbkdf2:00000000000000000000000000000000:0000000000000000000000000000000000000000000000000000000000000000";
@@ -26,9 +26,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
     }
 
-    const token = await signSession({ id: user.id, email: user.email, name: user.name });
+    const { password_hash: _ph, ...pub } = user;
+    const token = await signSession(pub);
     return NextResponse.json(
-      { ok: true, user: { id: user.id, email: user.email, name: user.name } },
+      { ok: true, user: pub },
       { headers: { "Set-Cookie": sessionCookie(token) } }
     );
   } catch {
