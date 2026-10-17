@@ -12,7 +12,7 @@ export default function AboutClient() {
     <SubPage active="about">
       <section>
         <div>
-          <h3 className="text-ternary font-title text-3xl md:text-4xl text-center mb-10 mt-40 lg:mt-20">{t.about.title}</h3>
+          <h3 className="text-ternary font-title text-3xl md:text-4xl text-center mb-10 mt-40 lg:mt-28">{t.about.title}</h3>
         </div>
         <div className="w-5/6 md:w-1/2 text-justify mx-auto text-lg text-gray-800 whitespace-pre-line pb-10">
           {t.about.body}

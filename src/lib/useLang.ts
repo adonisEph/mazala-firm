@@ -26,6 +26,10 @@ export function useLang(): [Lang, (l: Lang) => void] {
     };
   }, []);
 
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const setLang = useCallback((l: Lang) => {
     try {
       window.localStorage.setItem(KEY, l);

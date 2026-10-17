@@ -5,23 +5,43 @@
 @font-face {
   font-family: "Candara";
   src: url("/fonts/Candara.ttf");
+  font-display: swap;
 }
 @font-face {
   font-family: "Cartoonist Kooky";
   src: url("/fonts/cartoonist_kooky.ttf");
+  font-display: swap;
 }
 @font-face {
   font-family: "LeviReBrushed";
   src: url("/fonts/LeviReBrushed.ttf");
+  font-display: swap;
 }
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
   font-family: "Candara", sans-serif;
   background-color: #f7f7f7;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Illustration hero : dimensionnement déterministe sur tous les navigateurs */
+#illustration_img svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* Contenu /policies (HTML repris de la maquette) */

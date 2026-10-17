@@ -21,12 +21,18 @@ export default function SubPage({ children, active }: { children: React.ReactNod
     <div className="bg-paper min-h-screen">
       <header className="lg:px-24 flex flex-col items-center">
         {/* Mobile nav */}
-        <nav className="fixed lg:hidden z-10 top-0 left-0 w-full shadow-xl bg-ternary">
-          <div className="flex px-4 justify-between items-center py-4 text-lg bg-white">
+        <nav className="fixed lg:hidden z-50 top-0 left-0 w-full shadow-xl bg-white">
+          <div className="flex px-4 justify-between items-center py-4 pt-[max(1rem,env(safe-area-inset-top))] text-lg bg-white">
             <span className="font-logo text-xl text-ternary"><a href="/">Mazala</a></span>
             <div className="flex items-center gap-3">
               <LangToggle lang={lang} setLang={setLang} />
-              <button onClick={() => setMenuOpen((v) => !v)} className="h-full block focus:outline-none text-center" aria-label="Menu">
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="p-2 -m-1 block focus:outline-none text-center"
+                aria-label="Menu"
+                aria-expanded={menuOpen}
+                aria-controls="subpageLinks"
+              >
                 <svg viewBox="0 0 121 73" className="h-5">
                   <g transform="translate(-119 -378)">
                     <g>
@@ -39,7 +45,7 @@ export default function SubPage({ children, active }: { children: React.ReactNod
               </button>
             </div>
           </div>
-          <ul className={`${menuOpen ? "" : "hidden"} flex flex-col items-center space-y-6 py-10 font-title text-gray-100 shadow-2xl`}>
+          <ul id="subpageLinks" className={`${menuOpen ? "" : "hidden"} flex flex-col items-center space-y-6 py-10 font-title text-gray-100 shadow-2xl bg-ternary max-h-[80vh] overflow-y-auto`}>
             {navLinks.map((l) => (
               <li key={l.href}><a href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a></li>
             ))}
@@ -49,12 +55,17 @@ export default function SubPage({ children, active }: { children: React.ReactNod
           </ul>
         </nav>
         {/* Desktop nav */}
-        <nav className="hidden lg:flex mt-6 justify-between text-xl items-center py-2 text-lg w-full bg-paper">
+        <nav className="hidden lg:flex fixed top-0 left-0 z-50 w-full justify-between text-xl items-center py-4 px-10 lg:px-24 bg-paper/95 backdrop-blur-sm shadow-sm">
           <div><span className="font-logo text-3xl text-ternary"><a href="/">Mazala</a></span></div>
           <ul className="font-title flex space-x-8 text-text-sec items-center">
             {navLinks.map((l) => (
               <li key={l.href} className={l.href === "/about" && active === "about" ? "border-b-4 border-yellow-500" : ""}>
-                <a href={l.href}>{l.label}</a>
+                <a
+                  href={l.href}
+                  className="relative transition-colors duration-300 hover:text-ternary after:absolute after:left-0 after:-bottom-1.5 after:h-[3px] after:w-0 after:rounded-full after:bg-ternary after:transition-all after:duration-300 hover:after:w-full"
+                >
+                  {l.label}
+                </a>
               </li>
             ))}
             <li><LangToggle lang={lang} setLang={setLang} /></li>

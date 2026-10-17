@@ -278,7 +278,12 @@ export default function AdminPage() {
             <Field label="Bio (FR)"><textarea rows={4} className="w-full border rounded px-3 py-2" value={editMember.bio_fr ?? ""} onChange={(e) => setEditMember({ ...editMember, bio_fr: e.target.value })} /></Field>
           </div>
           <div className="grid md:grid-cols-3 gap-3">
-            <Field label="Photo (URL)"><input className="w-full border rounded px-3 py-2" value={editMember.photo_url ?? ""} onChange={(e) => setEditMember({ ...editMember, photo_url: e.target.value })} placeholder="/images/xxx.jpg" /></Field>
+            <Field label="Photo (URL)">
+              <input className="w-full border rounded px-3 py-2" value={editMember.photo_url ?? ""} onChange={(e) => setEditMember({ ...editMember, photo_url: e.target.value })} placeholder="/images/xxx.jpg" />
+              {editMember.photo_url ? (
+                <img src={editMember.photo_url} alt="Aperçu" className="mt-2 w-14 h-14 rounded-full object-cover border border-gray-200" />
+              ) : null}
+            </Field>
             <Field label="LinkedIn"><input className="w-full border rounded px-3 py-2" value={editMember.linkedin ?? ""} onChange={(e) => setEditMember({ ...editMember, linkedin: e.target.value })} /></Field>
             <Field label="Ordre"><input type="number" className="w-full border rounded px-3 py-2" value={editMember.sort_order ?? 0} onChange={(e) => setEditMember({ ...editMember, sort_order: Number(e.target.value) })} /></Field>
           </div>
