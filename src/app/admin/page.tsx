@@ -25,6 +25,7 @@ interface AdminAccount {
 }
 interface AdminForm {
   id?: number; name: string; email: string; password: string; permissions: string[];
+  role?: "superadmin" | "admin";
 }
 interface CurrentUser {
   id: number; email: string; name: string; role: "superadmin" | "admin"; permissions: string;
@@ -408,16 +409,17 @@ export default function AdminPage() {
                         )}
                       </div>
                     </div>
+                    {/* Soi-même ou tout admin non-superadmin peut être modifié ; un superadmin n'est jamais supprimable. */}
+                    {(a.id === user.id || a.role !== "superadmin") && (
+                      <button
+                        onClick={() => setEditAdmin({ id: a.id, name: a.name, email: a.email, password: "", permissions: parsePerms(a.permissions), role: a.role })}
+                        className="text-secondary underline text-sm"
+                      >
+                        Modifier
+                      </button>
+                    )}
                     {a.role !== "superadmin" && (
-                      <>
-                        <button
-                          onClick={() => setEditAdmin({ id: a.id, name: a.name, email: a.email, password: "", permissions: parsePerms(a.permissions) })}
-                          className="text-secondary underline text-sm"
-                        >
-                          Modifier
-                        </button>
-                        <button onClick={() => remove("admins", a.id)} className="text-red-500 underline text-sm">Supprimer</button>
-                      </>
+                      <button onClick={() => remove("admins", a.id)} className="text-red-500 underline text-sm">Supprimer</button>
                     )}
                   </div>
                 ))}
@@ -552,6 +554,7 @@ export default function AdminPage() {
           <Field label={editAdmin.id ? "Nouveau mot de passe (laisser vide pour conserver)" : "Mot de passe"}>
             <input type="password" autoComplete="new-password" className="w-full border rounded px-3 py-2" value={editAdmin.password ?? ""} onChange={(e) => setEditAdmin({ ...editAdmin, password: e.target.value })} placeholder={editAdmin.id ? "••••••••" : "Min 8 caractères"} />
           </Field>
+          {editAdmin.role !== "superadmin" && (
           <Field label="Droits d'accès">
             <div className="flex flex-wrap gap-4 pt-1">
               {SECTIONS.map((s) => (
@@ -572,6 +575,7 @@ export default function AdminPage() {
             </div>
             <p className="text-xs text-text-sec mt-2">L'admin ne verra et ne pourra gérer que les sections cochées.</p>
           </Field>
+          )}
         </EditModal>
       )}
     </div>
