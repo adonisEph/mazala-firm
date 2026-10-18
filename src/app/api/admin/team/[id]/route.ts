@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { translateFrToEn } from "@/lib/translate";
+import { httpUrl } from "@/lib/url";
 
 export const runtime = "edge";
 
@@ -15,7 +16,7 @@ const schema = z.object({
     .array(
       z.object({
         type: z.enum(["linkedin", "github", "x", "facebook", "instagram", "telegram", "whatsapp", "website"]),
-        url: z.string().trim().max(500),
+        url: z.string().trim().max(500).transform(httpUrl),
       })
     )
     .max(10)

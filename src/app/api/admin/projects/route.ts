@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { translateFrToEn } from "@/lib/translate";
+import { httpUrl } from "@/lib/url";
 
 export const runtime = "edge";
 
@@ -11,7 +12,7 @@ const schema = z.object({
   description_fr: z.string().trim().max(3000).default(""),
   techs: z.string().trim().max(500).default(""),
   image_url: z.string().trim().max(500).default(""),
-  project_url: z.string().trim().max(500).default(""),
+  project_url: z.string().trim().max(500).default("").transform(httpUrl),
   platform: z.enum(["", "web", "mobile", "desktop"]).default(""),
   sort_order: z.number().int().default(0),
 });

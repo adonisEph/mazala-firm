@@ -3,6 +3,7 @@
 import SubPage from "@/components/SubPage";
 import { SocialIcon, parseSocials, SOCIAL_LABELS } from "@/components/SocialIcons";
 import { T } from "@/lib/i18n";
+import { httpUrl } from "@/lib/url";
 import { useLang } from "@/lib/useLang";
 import type { CmsMember } from "@/components/MazalaPage";
 
@@ -41,7 +42,7 @@ export default function MemberClient({ member }: { member: CmsMember }) {
             {socials.map((s, i) => (
               <a
                 key={i}
-                href={s.url}
+                href={httpUrl(s.url)}
                 target="_blank"
                 rel="noreferrer"
                 title={SOCIAL_LABELS[s.type]}

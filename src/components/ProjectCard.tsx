@@ -1,6 +1,7 @@
 "use client";
 
 import { T, type Lang } from "@/lib/i18n";
+import { httpUrl } from "@/lib/url";
 import type { CmsProject } from "./MazalaPage";
 
 const PLATFORM_ICONS: Record<string, React.JSX.Element> = {
@@ -82,7 +83,7 @@ export function ProjectCard({ p, lang, id }: { p: CmsProject; lang: Lang; id?: s
           <TechBadges techs={p.techs} />
           {p.project_url ? (
             <a
-              href={p.project_url}
+              href={httpUrl(p.project_url)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-ternary text-white text-sm font-semibold transition-all hover:bg-ternary-light hover:scale-105 w-fit"
