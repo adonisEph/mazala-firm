@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   const denied = requireSuperadmin(session.user);
   if (denied) return denied;
   const rows = await db()
-    .prepare(`SELECT id, email, name, role, permissions, created_at FROM admin_users ORDER BY id`)
+    .prepare(`SELECT id, email, name, role, permissions, created_at, last_login_at, last_seen_at FROM admin_users ORDER BY id`)
     .all();
   return NextResponse.json({ admins: rows.results });
 }

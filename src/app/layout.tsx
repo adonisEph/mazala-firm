@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "@/components/PwaRegister";
 import ThemePicker from "@/components/ThemePicker";
+import VisitorTracker from "@/components/VisitorTracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <ThemePicker />
         <PwaRegister />
+        <VisitorTracker />
       </body>
     </html>
   );

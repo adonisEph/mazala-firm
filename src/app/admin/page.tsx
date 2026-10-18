@@ -25,6 +25,15 @@ interface Message {
 interface AdminAccount {
   id: number; email: string; name: string; role: "superadmin" | "admin";
   permissions: string; created_at: string;
+  last_login_at?: string | null; last_seen_at?: string | null;
+}
+interface Analytics {
+  days: number;
+  today: { views: number; visitors: number };
+  range: { views: number; visitors: number };
+  daily: { d: string; views: number; visitors: number }[];
+  topPages: { path: string; views: number; visitors: number }[];
+  topCountries: { country: string; views: number; visitors: number }[];
 }
 interface AdminForm {
   id?: number; name: string; email: string; password: string; permissions: string[];
@@ -36,7 +45,19 @@ interface CurrentUser {
 
 const SECTION_LABELS: Record<string, string> = { projects: "Projets", team: "Équipe", messages: "Messages" };
 const SECTIONS = Object.keys(SECTION_LABELS);
-type TabKey = "projects" | "team" | "messages" | "admins";
+type TabKey = "visitors" | "projects" | "team" | "messages" | "admins";
+// datetime('now') SQLite = UTC « YYYY-MM-DD HH:MM:SS » — parsé en UTC explicite.
+const parseUtc = (s?: string | null) => (s ? new Date(s.replace(" ", "T") + "Z") : null);
+const fmtWhen = (s?: string | null) => {
+  const d = parseUtc(s);
+  return d ? d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "jamais";
+};
+const isOnline = (a: AdminAccount) => {
+  const d = parseUtc(a.last_seen_at);
+  return !!d && Date.now() - d.getTime() < 5 * 60_000;
+};
+const countryFlag = (cc: string) =>
+  /^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map((c) => 127397 + c.charCodeAt(0))) : "🌐";
 const parsePerms = (json?: string): string[] => {
   try {
     const a = JSON.parse(json ?? "[]");
@@ -63,7 +84,9 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 export default function AdminPage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<TabKey>("projects");
+  const [tab, setTab] = useState<TabKey>("visitors");
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(30);
   const [projects, setProjects] = useState<Project[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,12 +132,21 @@ export default function AdminPage() {
       .finally(() => setChecking(false));
   }, [load]);
 
-  // Onglet par défaut = première section autorisée.
+  // Onglet par défaut = « Visiteurs » (ouvert à tout admin), puis sections autorisées.
   useEffect(() => {
     if (!user) return;
-    const allowed = [...userPerms(user), ...(user.role === "superadmin" ? ["admins"] : [])];
+    const allowed = ["visitors", ...userPerms(user), ...(user.role === "superadmin" ? ["admins"] : [])];
     if (!allowed.includes(tab) && allowed.length) setTab(allowed[0] as typeof tab);
   }, [user, tab]);
+
+  // Stats visiteurs chargées à l'ouverture de l'onglet / changement de période.
+  useEffect(() => {
+    if (tab !== "visitors" || !user) return;
+    setAnalytics(null);
+    api<Analytics>(`/api/admin/analytics?days=${analyticsDays}`)
+      .then(setAnalytics)
+      .catch(() => setAnalytics(null));
+  }, [tab, analyticsDays, user]);
 
   async function login(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -297,6 +329,7 @@ export default function AdminPage() {
 
       <div className="flex gap-2 px-4 md:px-10 pt-6">
         {([
+          ["visitors", "Visiteurs"] as const,
           ...userPerms(user).map((key) => [key, key === "messages" ? `Messages${messages.filter((m) => !m.read).length ? ` (${messages.filter((m) => !m.read).length})` : ""}` : SECTION_LABELS[key]] as const),
           ...(user.role === "superadmin" ? [["admins", "Admins"] as const] : []),
         ] as ReadonlyArray<readonly [TabKey, string]>).map(([key, label]) => (
@@ -312,6 +345,106 @@ export default function AdminPage() {
 
       <main className="px-4 md:px-10 pb-16">
         <div className="bg-white rounded-2xl shadow-xl p-5 md:p-8">
+          {/* ── VISITEURS (tout admin) ── */}
+          {tab === "visitors" && (
+            <>
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="font-title text-2xl text-secondary">Visiteurs</h2>
+                <div className="flex gap-1.5">
+                  {[7, 14, 30].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setAnalyticsDays(d)}
+                      className={`px-3 py-1 rounded-full text-sm font-semibold transition-colors ${analyticsDays === d ? "bg-ternary text-white" : "text-text-sec hover:text-secondary"}`}
+                    >
+                      {d} j
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {!analytics ? (
+                <p className="text-text-sec text-sm">Chargement des statistiques…</p>
+              ) : (
+                <div className="space-y-7">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { label: "Visiteurs aujourd'hui", v: analytics.today.visitors },
+                      { label: "Pages vues aujourd'hui", v: analytics.today.views },
+                      { label: `Visiteurs (${analytics.days} j)`, v: analytics.range.visitors },
+                      { label: `Pages vues (${analytics.days} j)`, v: analytics.range.views },
+                    ].map((k) => (
+                      <div key={k.label} className="border border-gray-100 rounded-xl p-4">
+                        <div className="text-3xl font-bold text-secondary">{k.v}</div>
+                        <div className="text-xs text-text-sec mt-1">{k.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-secondary mb-3">Pages vues par jour</h3>
+                    {analytics.daily.length ? (
+                      <>
+                        <div className="flex items-end gap-1 h-32 border-b border-gray-200">
+                          {analytics.daily.map((d) => (
+                            <div
+                              key={d.d}
+                              className="flex-1 min-w-0 h-full flex items-end"
+                              title={`${d.d} — ${d.visitors} visiteur${d.visitors > 1 ? "s" : ""} · ${d.views} vue${d.views > 1 ? "s" : ""}`}
+                            >
+                              <div
+                                className="w-full bg-ternary/80 rounded-t hover:bg-ternary transition-colors"
+                                style={{ height: `${Math.max(3, Math.round((d.views / Math.max(1, ...analytics.daily.map((x) => x.views))) * 100))}%` }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex justify-between text-[11px] text-gray-400 mt-1">
+                          <span>{analytics.daily[0].d}</span>
+                          <span>{analytics.daily[analytics.daily.length - 1].d}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-text-sec text-sm">Aucune visite enregistrée sur la période.</p>
+                    )}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold text-secondary mb-3">Pages les plus vues</h3>
+                      {analytics.topPages.length ? (
+                        <div className="divide-y divide-gray-50">
+                          {analytics.topPages.map((p) => (
+                            <div key={p.path} className="flex justify-between gap-3 text-sm py-1.5">
+                              <span className="text-secondary truncate">{p.path}</span>
+                              <span className="text-text-sec shrink-0">{p.views} vues · {p.visitors} vis.</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-text-sec text-sm">—</p>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-secondary mb-3">Pays des visiteurs</h3>
+                      {analytics.topCountries.length ? (
+                        <div className="divide-y divide-gray-50">
+                          {analytics.topCountries.map((c) => (
+                            <div key={c.country} className="flex justify-between gap-3 text-sm py-1.5">
+                              <span className="text-secondary">{countryFlag(c.country)} {c.country}</span>
+                              <span className="text-text-sec shrink-0">{c.visitors} vis. · {c.views} vues</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-text-sec text-sm">—</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
           {/* ── PROJETS ── */}
           {tab === "projects" && (
             <>
@@ -427,6 +560,15 @@ export default function AdminPage() {
                         {a.id === user.id ? <span className="ml-2 text-xs text-gray-400">(vous)</span> : null}
                       </div>
                       <div className="text-xs text-text-sec truncate">{a.email}</div>
+                      <div className="text-xs mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                        {isOnline(a) ? (
+                          <span className="text-green-600 font-semibold">● En ligne</span>
+                        ) : (
+                          <span className="text-gray-400">● Hors ligne</span>
+                        )}
+                        <span className="text-gray-400">activité : {fmtWhen(a.last_seen_at)}</span>
+                        <span className="text-gray-400">connexion : {fmtWhen(a.last_login_at)}</span>
+                      </div>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {a.role === "superadmin" ? (
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">Tous les droits</span>

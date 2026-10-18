@@ -26,6 +26,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
     }
 
+    await db()
+      .prepare(`UPDATE admin_users SET last_login_at = datetime('now'), last_seen_at = datetime('now') WHERE id = ?`)
+      .bind(user.id)
+      .run();
+
     const { password_hash: _ph, ...pub } = user;
     const token = await signSession(pub);
     return NextResponse.json(

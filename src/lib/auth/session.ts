@@ -60,6 +60,12 @@ export async function requireAdmin(req: NextRequest, section?: Section): Promise
     if (section && !canAccess(user, section)) {
       return { ok: false, response: NextResponse.json({ error: "Droits insuffisants." }, { status: 403 }) };
     }
+    // « Vu en dernier » : écriture non bloquante — sert à l'indicateur en ligne du superadmin.
+    try {
+      getRequestContext<CloudflareEnv>().ctx.waitUntil(
+        db().prepare(`UPDATE admin_users SET last_seen_at = datetime('now') WHERE id = ?`).bind(user.id).run()
+      );
+    } catch {}
     return { ok: true, user };
   } catch {
     return { ok: false, response: NextResponse.json({ error: "Session invalide." }, { status: 401 }) };
