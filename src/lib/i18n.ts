@@ -2,7 +2,7 @@ export type Lang = "fr" | "en";
 
 export const T = {
   en: {
-    nav: { services: "Services", portfolio: "Portfolio", team: "Our team", about: "About Us", contact: "CONTACT" },
+    nav: { services: "Services", portfolio: "Portfolio", team: "Our team", about: "About Us", contact: "CONTACT", theme: "Theme" },
     hero: {
       line1a: "WE MAKE APPS FOR",
       mobile: "MOBILE",
@@ -32,6 +32,8 @@ export const T = {
     },
     team: {
       title: "Meet the team",
+      bio: "Biography",
+      back: "Back to team",
     },
     contact: {
       title: "Let's get in touch",
@@ -58,7 +60,7 @@ export const T = {
     },
   },
   fr: {
-    nav: { services: "Services", portfolio: "Réalisations", team: "Équipe", about: "À propos", contact: "CONTACT" },
+    nav: { services: "Services", portfolio: "Réalisations", team: "Équipe", about: "À propos", contact: "CONTACT", theme: "Thème" },
     hero: {
       line1a: "NOUS CRÉONS DES APPLIS",
       mobile: "MOBILE",
@@ -88,6 +90,8 @@ export const T = {
     },
     team: {
       title: "Notre équipe",
+      bio: "Biographie",
+      back: "Retour à l'équipe",
     },
     contact: {
       title: "Discutons ensemble",

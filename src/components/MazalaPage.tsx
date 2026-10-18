@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HERO_SVG } from "./hero-illustration";
 import { ProjectCard } from "./ProjectCard";
-import { SocialIcon, parseSocials, SOCIAL_LABELS } from "./SocialIcons";
+import { SocialIcon, type SocialType } from "./SocialIcons";
 import { T, type Lang } from "@/lib/i18n";
 import { useLang } from "@/lib/useLang";
 
@@ -134,15 +134,7 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
     setSending(true);
     setSentMsg("");
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: String(fd.get("name") ?? ""),
-          email: String(fd.get("email") ?? ""),
-          message: String(fd.get("message") ?? ""),
-        }),
-      });
+      const res = await fetch("/api/contact", { method: "POST", body: fd });
       const data = (await res.json()) as { ok?: boolean };
       setSentMsg(res.ok && data.ok ? t.contact.sent : t.contact.error);
       if (res.ok) formRef.current?.reset();
@@ -164,8 +156,8 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
     <div className="bg-paper min-h-screen overflow-x-hidden">
       <header className="md:px-10 lg:px-24 flex flex-col items-center">
       {/* ── Navbar mobile/tablette ── */}
-      <nav id="mobileNavBar" className="fixed lg:hidden z-50 top-0 left-0 w-full shadow-md bg-white">
-        <div className="flex px-4 justify-between items-center py-4 pt-[max(1rem,env(safe-area-inset-top))] text-lg bg-white">
+      <nav id="mobileNavBar" className="fixed lg:hidden z-50 top-0 left-0 w-full shadow-md bg-paper">
+        <div className="flex px-4 justify-between items-center py-4 pt-[max(1rem,env(safe-area-inset-top))] text-lg bg-paper">
           <span className="font-logo text-xl text-ternary"><a href="/">Mazala</a></span>
           <div className="flex items-center gap-3">
             <LangToggle lang={lang} setLang={setLang} />
@@ -177,12 +169,12 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
               aria-expanded={menuOpen}
               aria-controls="mobileLinks"
             >
-              <svg viewBox="0 0 121 73" className="h-5">
+              <svg viewBox="0 0 121 73" className="h-5 text-ternary">
                 <g transform="translate(-119 -378)">
                   <g>
-                    <rect width="121" height="19" rx="9.5" transform="translate(119 378)" fill="#c80" />
-                    <rect width="121" height="19" rx="9.5" transform="translate(119 405)" fill="#c80" />
-                    <rect width="121" height="19" rx="9.5" transform="translate(119 432)" fill="#c80" />
+                    <rect width="121" height="19" rx="9.5" transform="translate(119 378)" fill="currentColor" />
+                    <rect width="121" height="19" rx="9.5" transform="translate(119 405)" fill="currentColor" />
+                    <rect width="121" height="19" rx="9.5" transform="translate(119 432)" fill="currentColor" />
                   </g>
                 </g>
               </svg>
@@ -311,7 +303,7 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
               >
                 <div
                   className="rounded-full w-full h-full opacity-70"
-                  style={{ background: "linear-gradient(hsla(244, 45%, 22%, 0.4), hsla(244, 54%, 35%, 0.4))" }}
+                  style={{ background: "linear-gradient(rgb(var(--secondary) / 0.4), rgb(var(--secondary-light) / 0.4))" }}
                 />
               </div>
               <div id={`desc-member-${i + 1}`} className="w-full text-gray-100 flex flex-col items-center space-y-3">
@@ -319,25 +311,12 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
                   <span className="font-bold text-xl">{m.name}</span>
                   <span className="text-sm text-gray-200">{lang === "fr" ? m.role_fr : m.role_en}</span>
                 </div>
-                <p className="text-base md:text-lg text-center px-2">
-                  {lang === "fr" ? m.bio_fr : m.bio_en}
-                </p>
-                {parseSocials(m.socials).length ? (
-                  <div className="flex flex-wrap justify-center gap-3 pt-1">
-                    {parseSocials(m.socials).map((s, si) => (
-                      <a
-                        key={si}
-                        href={s.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={SOCIAL_LABELS[s.type]}
-                        className="w-12 h-12 rounded-full shadow-2xl block hover:scale-110 transition-transform"
-                      >
-                        <SocialIcon type={s.type} />
-                      </a>
-                    ))}
-                  </div>
-                ) : null}
+                <a
+                  href={`/team/${m.id}`}
+                  className="text-white rounded-full bg-ternary py-1.5 px-6 text-sm font-semibold transition-all duration-300 hover:bg-ternary-light hover:scale-105"
+                >
+                  {t.team.bio}
+                </a>
               </div>
             </div>
           ))}
@@ -377,7 +356,13 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
               />
             </div>
             <div className="space-y-4">
-              <input className="w-full rounded bg-gray-50 text-gray-800" type="file" name="attachment" aria-label={t.contact.fileLabel} />
+              <input
+                className="w-full rounded bg-gray-50 text-gray-800"
+                type="file"
+                name="attachment"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.zip,.png,.jpg,.jpeg,.webp"
+                aria-label={t.contact.fileLabel}
+              />
               <textarea
                 placeholder={t.contact.messagePh}
                 className="w-full rounded p-3 bg-gray-50 text-gray-800"
@@ -405,32 +390,27 @@ export default function MazalaPage({ projects, members }: { projects: CmsProject
 
       {/* ── Footer + réseaux — fidèle (fond clair) ── */}
       <footer className="pt-24 pb-16 relative">
-        <div className="hidden md:block absolute bottom-6 right-8">
-          <ul className="flex space-x-4 text-text-sec">
-            <li><a href="/about">{t.nav.about}</a></li>
-            <li><a href="/policies">{t.footer.policies}</a></li>
-          </ul>
-        </div>
+
         <div className="flex space-x-3 justify-center">
-          {[
-            { href: "https://facebook.com", icon: "/images/facebook.svg", alt: "Facebook" },
-            { href: "https://wa.me/", icon: "/images/WhatsappColor.svg", alt: "WhatsApp" },
-            { href: "https://t.me/", icon: "/images/telegram_app.svg", alt: "Telegram" },
-            { href: "https://www.linkedin.com/", icon: "/images/linkedin.svg", alt: "LinkedIn" },
-          ].map((s) => (
-            <a key={s.alt} href={s.href} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full block hover:scale-110 transition-transform">
-              <img src={s.icon} alt={s.alt} loading="lazy" className="w-full h-full" />
+          {([
+            { href: "https://facebook.com", type: "facebook" },
+            { href: "https://wa.me/", type: "whatsapp" },
+            { href: "https://t.me/", type: "telegram" },
+            { href: "https://www.linkedin.com/", type: "linkedin" },
+          ] as { href: string; type: SocialType }[]).map((s) => (
+            <a key={s.type} href={s.href} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full block hover:scale-110 transition-transform">
+              <SocialIcon type={s.type} className="block h-full w-full" />
             </a>
           ))}
         </div>
-        <div className="flex justify-center text-gray-700 text-sm font-title mt-6">{t.footer.location}</div>
-        <div className="flex md:hidden justify-center mt-4">
-          <ul className="flex space-x-3 text-sm">
-            <li><a className="text-[#ffa500]" href="/about">{t.nav.about}</a></li>
-            <li><a className="text-[#ffa500]" href="/policies">{t.footer.policies}</a></li>
+        <div className="flex justify-center text-text-sec text-sm font-title mt-6">{t.footer.location}</div>
+        <div className="flex justify-center mt-4">
+          <ul className="flex space-x-4 text-sm text-text-sec">
+            <li><a className="hover:text-ternary transition-colors" href="/about">{t.nav.about}</a></li>
+            <li><a className="hover:text-ternary transition-colors" href="/policies">{t.footer.policies}</a></li>
           </ul>
         </div>
-        <div className="flex justify-center text-gray-600 mt-6 text-xs">{t.footer.copyright}</div>
+        <div className="flex justify-center text-text-sec/70 mt-6 text-xs">{t.footer.copyright}</div>
       </footer>
     </div>
   );

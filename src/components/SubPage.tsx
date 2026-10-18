@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { T, type Lang } from "@/lib/i18n";
 import { useLang } from "@/lib/useLang";
+import { SocialIcon, type SocialType } from "./SocialIcons";
 
 /** En-tête + pied communs aux sous-pages (/about, /policies) — fidèle à la maquette. */
 export default function SubPage({ children, active }: { children: React.ReactNode; active?: "about" | "policies" }) {
@@ -21,7 +22,7 @@ export default function SubPage({ children, active }: { children: React.ReactNod
     <div className="bg-paper min-h-screen">
       <header className="lg:px-24 flex flex-col items-center">
         {/* Mobile nav */}
-        <nav className="fixed lg:hidden z-50 top-0 left-0 w-full shadow-xl bg-white">
+        <nav className="fixed lg:hidden z-50 top-0 left-0 w-full shadow-xl bg-paper">
           <div className="flex px-4 justify-between items-center py-4 pt-[max(1rem,env(safe-area-inset-top))] text-lg bg-white">
             <span className="font-logo text-xl text-ternary"><a href="/">Mazala</a></span>
             <div className="flex items-center gap-3">
@@ -33,12 +34,12 @@ export default function SubPage({ children, active }: { children: React.ReactNod
                 aria-expanded={menuOpen}
                 aria-controls="subpageLinks"
               >
-                <svg viewBox="0 0 121 73" className="h-5">
+                <svg viewBox="0 0 121 73" className="h-5 text-ternary">
                   <g transform="translate(-119 -378)">
                     <g>
-                      <rect width="121" height="19" rx="9.5" transform="translate(119 378)" fill="#c80" />
-                      <rect width="121" height="19" rx="9.5" transform="translate(119 405)" fill="#c80" />
-                      <rect width="121" height="19" rx="9.5" transform="translate(119 432)" fill="#c80" />
+                      <rect width="121" height="19" rx="9.5" transform="translate(119 378)" fill="currentColor" />
+                      <rect width="121" height="19" rx="9.5" transform="translate(119 405)" fill="currentColor" />
+                      <rect width="121" height="19" rx="9.5" transform="translate(119 432)" fill="currentColor" />
                     </g>
                   </g>
                 </svg>
@@ -59,7 +60,7 @@ export default function SubPage({ children, active }: { children: React.ReactNod
           <div><span className="font-logo text-3xl text-ternary"><a href="/">Mazala</a></span></div>
           <ul className="font-title flex space-x-8 text-text-sec items-center">
             {navLinks.map((l) => (
-              <li key={l.href} className={l.href === "/about" && active === "about" ? "border-b-4 border-yellow-500" : ""}>
+              <li key={l.href} className={l.href === "/about" && active === "about" ? "border-b-4 border-ternary" : ""}>
                 <a
                   href={l.href}
                   className="relative transition-colors duration-300 hover:text-ternary after:absolute after:left-0 after:-bottom-1.5 after:h-[3px] after:w-0 after:rounded-full after:bg-ternary after:transition-all after:duration-300 hover:after:w-full"
@@ -79,32 +80,27 @@ export default function SubPage({ children, active }: { children: React.ReactNod
       <main>{children}</main>
 
       <footer className="pt-24 pb-16 relative">
-        <div className="hidden md:block absolute bottom-6 right-8">
-          <ul className="flex space-x-4 text-text-sec">
-            <li><a href="/about">{t.nav.about}</a></li>
-            <li><a href="/policies">{t.footer.policies}</a></li>
-          </ul>
-        </div>
+
         <div className="flex space-x-3 justify-center">
-          {[
-            { href: "https://facebook.com", icon: "/images/facebook.svg", alt: "Facebook" },
-            { href: "https://wa.me/", icon: "/images/WhatsappColor.svg", alt: "WhatsApp" },
-            { href: "https://t.me/", icon: "/images/telegram_app.svg", alt: "Telegram" },
-            { href: "https://www.linkedin.com/", icon: "/images/linkedin.svg", alt: "LinkedIn" },
-          ].map((s) => (
-            <a key={s.alt} href={s.href} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full block hover:scale-110 transition-transform">
-              <img src={s.icon} alt={s.alt} className="w-full h-full" />
+          {([
+            { href: "https://facebook.com", type: "facebook" },
+            { href: "https://wa.me/", type: "whatsapp" },
+            { href: "https://t.me/", type: "telegram" },
+            { href: "https://www.linkedin.com/", type: "linkedin" },
+          ] as { href: string; type: SocialType }[]).map((s) => (
+            <a key={s.type} href={s.href} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-full block hover:scale-110 transition-transform">
+              <SocialIcon type={s.type} className="block h-full w-full" />
             </a>
           ))}
         </div>
-        <div className="flex justify-center text-gray-700 text-sm font-title mt-6">{t.footer.location}</div>
-        <div className="flex md:hidden justify-center mt-4">
-          <ul className="flex space-x-3 text-sm">
-            <li><a className="text-[#ffa500]" href="/about">{t.nav.about}</a></li>
-            <li><a className="text-[#ffa500]" href="/policies">{t.footer.policies}</a></li>
+        <div className="flex justify-center text-text-sec text-sm font-title mt-6">{t.footer.location}</div>
+        <div className="flex justify-center mt-4">
+          <ul className="flex space-x-4 text-sm text-text-sec">
+            <li><a className="hover:text-ternary transition-colors" href="/about">{t.nav.about}</a></li>
+            <li><a className="hover:text-ternary transition-colors" href="/policies">{t.footer.policies}</a></li>
           </ul>
         </div>
-        <div className="flex justify-center text-gray-600 mt-6 text-xs">{t.footer.copyright}</div>
+        <div className="flex justify-center text-text-sec/70 mt-6 text-xs">{t.footer.copyright}</div>
       </footer>
     </div>
   );

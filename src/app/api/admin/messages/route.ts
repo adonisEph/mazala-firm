@@ -9,7 +9,12 @@ export async function GET(req: NextRequest) {
   const session = await requireAdmin(req, "messages");
   if (!session.ok) return session.response;
   const rows = await db()
-    .prepare(`SELECT id, name, email, message, read, created_at FROM contact_messages ORDER BY read ASC, id DESC`)
+    .prepare(
+      `SELECT m.id, m.name, m.email, m.message, m.read, m.created_at,
+              a.id AS attachment_id, a.filename AS attachment_name, a.size AS attachment_size
+       FROM contact_messages m LEFT JOIN attachments a ON a.message_id = m.id
+       ORDER BY m.read ASC, m.id DESC`
+    )
     .all();
   return NextResponse.json({ messages: rows.results });
 }

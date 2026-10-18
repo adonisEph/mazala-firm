@@ -5,13 +5,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Palette fidèle à la maquette Mazala
-        paper: "#f7f7f7",
-        secondary: "#4A4860",
-        "secondary-light": "#585371",
-        "text-sec": "#716F94",
-        ternary: "#CC8800",
-        "ternary-light": "#F5A608",
+        // Palette pilotée par variables CSS (thèmes) — valeurs dans globals.css
+        paper: "rgb(var(--paper) / <alpha-value>)",
+        secondary: "rgb(var(--secondary) / <alpha-value>)",
+        "secondary-light": "rgb(var(--secondary-light) / <alpha-value>)",
+        "text-sec": "rgb(var(--text-sec) / <alpha-value>)",
+        ternary: "rgb(var(--ternary) / <alpha-value>)",
+        "ternary-light": "rgb(var(--ternary-light) / <alpha-value>)",
       },
       fontFamily: {
         logo: ["LeviReBrushed", "cursive"],

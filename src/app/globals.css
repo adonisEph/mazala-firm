@@ -2,6 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Thèmes — variables RVB consommées par Tailwind (tailwind.config) ── */
+/* « marine » = thème par défaut (aucun data-theme sur <html>) */
+:root,
+[data-theme="marine"] {
+  --paper: 244 247 250;
+  --secondary: 30 58 95;
+  --secondary-light: 43 82 133;
+  --text-sec: 76 108 146;
+  --ternary: 217 119 6;
+  --ternary-light: 245 158 11;
+}
+[data-theme="mazala"] {
+  --paper: 247 247 247;
+  --secondary: 74 72 96;
+  --secondary-light: 88 83 113;
+  --text-sec: 113 111 148;
+  --ternary: 204 136 0;
+  --ternary-light: 245 166 8;
+}
+[data-theme="emeraude"] {
+  --paper: 245 248 246;
+  --secondary: 26 66 51;
+  --secondary-light: 38 92 71;
+  --text-sec: 82 121 111;
+  --ternary: 184 134 11;
+  --ternary-light: 217 165 20;
+}
+[data-theme="bordeaux"] {
+  --paper: 250 246 245;
+  --secondary: 75 36 52;
+  --secondary-light: 101 52 74;
+  --text-sec: 138 90 107;
+  --ternary: 192 120 42;
+  --ternary-light: 217 152 69;
+}
+[data-theme="nuit"] {
+  --paper: 245 246 248;
+  --secondary: 30 36 48;
+  --secondary-light: 45 53 70;
+  --text-sec: 92 102 122;
+  --ternary: 217 164 6;
+  --ternary-light: 240 185 20;
+}
+[data-theme="safran"] {
+  --paper: 250 248 244;
+  --secondary: 74 62 50;
+  --secondary-light: 94 80 66;
+  --text-sec: 122 108 90;
+  --ternary: 200 100 20;
+  --ternary-light: 232 130 40;
+}
+
 @font-face {
   font-family: "Candara";
   src: url("/fonts/Candara.ttf");
@@ -33,7 +85,7 @@ html {
 
 body {
   font-family: "Candara", sans-serif;
-  background-color: #f7f7f7;
+  background-color: rgb(var(--paper));
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -43,23 +95,27 @@ body {
   width: 100%;
   height: auto;
 }
+/* …et bascule douce des couleurs au changement de thème */
+#illustration_img svg * {
+  transition: fill 0.4s ease, stroke 0.4s ease;
+}
 
 /* Contenu /policies (HTML repris de la maquette) */
 .policies-content h1 {
   font-family: "Cartoonist Kooky", sans-serif;
-  color: #cc8800;
+  color: rgb(var(--ternary));
   font-size: 1.875rem;
   margin: 1.5rem 0 0.75rem;
 }
 .policies-content h2 {
   font-family: "Cartoonist Kooky", sans-serif;
-  color: #4a4860;
+  color: rgb(var(--secondary));
   font-size: 1.375rem;
   margin: 1.25rem 0 0.5rem;
 }
 .policies-content h3 {
   font-family: "Cartoonist Kooky", sans-serif;
-  color: #cc8800;
+  color: rgb(var(--ternary));
 }
 .policies-content p {
   margin-bottom: 0.75rem;
@@ -96,12 +152,12 @@ body {
   letter-spacing: 0.4em;
 }
 .flip a .front {
-  background-color: rgb(199, 133, 10);
+  background-color: rgb(var(--ternary));
   color: #fff;
   transform: rotateY(0) translateZ(24px);
 }
 .flip a .back {
-  background-color: #716f94;
+  background-color: rgb(var(--text-sec));
   color: rgb(255, 255, 255);
   transform: rotateX(90deg) translateZ(24px);
   overflow: hidden;
@@ -128,7 +184,7 @@ body {
 .flip a:hover .back {
   color: rgb(255, 255, 255);
   transition: color 0.4s linear;
-  background: #716f94;
+  background: rgb(var(--text-sec));
 }
 .flip a:hover .back::after {
   transform: rotate(6deg) translate(100px, -22px);

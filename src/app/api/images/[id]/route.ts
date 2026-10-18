@@ -9,9 +9,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const row = await db()
     .prepare(`SELECT mime, data FROM images WHERE id = ?`)
     .bind(Number(id))
-    .first<{ mime: string; data: ArrayBuffer }>();
+    .first<{ mime: string; data: ArrayBuffer | Uint8Array | number[] }>();
   if (!row) return new Response("Not found", { status: 404 });
-  return new Response(row.data, {
+  // La D1 émulée (next dev) renvoie les BLOBs en tableau d'octets, la vraie D1 en ArrayBuffer.
+  const bytes = row.data instanceof ArrayBuffer ? row.data : new Uint8Array(row.data);
+  return new Response(bytes, {
     headers: {
       "Content-Type": row.mime,
       "Cache-Control": "public, max-age=31536000, immutable",

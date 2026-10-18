@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import PwaRegister from "@/components/PwaRegister";
+import ThemePicker from "@/components/ThemePicker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,14 +25,23 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#CC8800",
+  themeColor: "#D97706",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Applique le thème choisi avant le premier rendu — évite le flash de la palette par défaut */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("mz-theme");if(t&&t!=="marine")document.documentElement.dataset.theme=t;}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>
         {children}
+        <ThemePicker />
         <PwaRegister />
       </body>
     </html>

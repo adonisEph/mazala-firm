@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { parseSocials, SOCIAL_LABELS, SOCIAL_TYPES, type SocialLink } from "@/components/SocialIcons";
+import { ProjectCard } from "@/components/ProjectCard";
+import type { CmsProject } from "@/components/MazalaPage";
 
 export const runtime = "edge";
 
@@ -18,6 +20,7 @@ interface Member {
 type MemberForm = Omit<Member, "socials"> & { socials: SocialLink[] };
 interface Message {
   id: number; name: string; email: string; message: string; read: number; created_at: string;
+  attachment_id?: number | null; attachment_name?: string | null; attachment_size?: number | null;
 }
 interface AdminAccount {
   id: number; email: string; name: string; role: "superadmin" | "admin";
@@ -50,7 +53,10 @@ const EMPTY_MEMBER: Omit<MemberForm, "id"> = { name: "", role_fr: "", role_en: "
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { credentials: "include", ...init });
-  if (!res.ok) throw new Error(String(res.status));
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `HTTP ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -67,6 +73,13 @@ export default function AdminPage() {
   const [editAdmin, setEditAdmin] = useState<Partial<AdminForm> | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+  // Message de retour de l'upload d'image (conforme / refusée + pourquoi).
+  const [imgMsg, setImgMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  // Aperçu fidèle du rendu d'une image dans sa section du site (modal ou clic sur vignette).
+  const [previewMember, setPreviewMember] = useState<Pick<Member, "photo_url" | "name" | "role_fr"> | null>(null);
+  const [previewProject, setPreviewProject] = useState<Project | null>(null);
+  const modalOpen = editProject !== null || editMember !== null || editAdmin !== null;
+  useEffect(() => { setImgMsg(null); }, [modalOpen]);
 
   // Ne charge que les sections autorisées — sinon un admin restreint prendrait des 403.
   const load = useCallback(async (u: CurrentUser | null) => {
@@ -124,16 +137,18 @@ export default function AdminPage() {
   async function uploadImage(e: React.ChangeEvent<HTMLInputElement>, kind: "project" | "member") {
     const file = e.target.files?.[0];
     if (!file) return;
+    setImgMsg(null);
+    let dims: { w: number; h: number } | null = null;
     // SVG = vectoriel, pas de contrainte de dimensions.
     if (file.type !== "image/svg+xml") {
-      const dims = await new Promise<{ w: number; h: number } | null>((resolve) => {
+      dims = await new Promise<{ w: number; h: number } | null>((resolve) => {
         const img = new Image();
         img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
         img.onerror = () => resolve(null);
         img.src = URL.createObjectURL(file);
       });
       if (!dims) {
-        alert("Image illisible — formats acceptés : PNG, JPG, WebP, SVG.");
+        setImgMsg({ ok: false, text: `Image refusée : « ${file.name} » est illisible — formats acceptés : PNG, JPG, WebP, SVG.` });
         e.target.value = "";
         return;
       }
@@ -143,9 +158,9 @@ export default function AdminPage() {
           : dims.w < 360 || dims.h < 360;
       if (invalid) {
         const hint = kind === "project"
-          ? "une image paysage d'au moins 640×360 px — idéal ~1600×900"
-          : "une image d'au moins 360×360 px — idéal : carré ≥ 500×500";
-        alert(`Image non conforme (${dims.w}×${dims.h}px) : utilisez ${hint}.`);
+          ? "une image paysage d'au moins 640×360 px (idéal ~1600×900)"
+          : "une image d'au moins 360×360 px (idéal : carré ≥ 500×500)";
+        setImgMsg({ ok: false, text: `Image refusée — ${dims.w}×${dims.h}px : il faut ${hint}.` });
         e.target.value = "";
         return;
       }
@@ -157,8 +172,11 @@ export default function AdminPage() {
       const res = await api<{ url: string }>(`/api/admin/images?for=${kind}`, { method: "POST", body: fd });
       if (kind === "project") setEditProject((p) => (p ? { ...p, image_url: res.url } : p));
       else setEditMember((m) => (m ? { ...m, photo_url: res.url } : m));
-    } catch {
-      alert("Échec de l'envoi de l'image");
+      const info = dims ? `${dims.w}×${dims.h}px` : "vectoriel";
+      setImgMsg({ ok: true, text: `Image conforme — « ${file.name} » (${info}, ${Math.round(file.size / 1024)} Ko) chargée.` });
+    } catch (err) {
+      setImgMsg({ ok: false, text: `Image refusée : ${err instanceof Error ? err.message : "échec de l'envoi"}.` });
+      e.target.value = "";
     }
     setUploadingImg(false);
   }
@@ -195,8 +213,8 @@ export default function AdminPage() {
     if (!confirm("Supprimer définitivement ?")) return;
     try {
       await api(`/api/admin/${kind}/${id}`, { method: "DELETE" });
-    } catch {
-      alert("Suppression impossible.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Suppression impossible.");
     }
     await load(user);
   }
@@ -223,8 +241,8 @@ export default function AdminPage() {
       });
       setEditAdmin(null);
       await load(user);
-    } catch {
-      alert("Erreur d'enregistrement (email déjà utilisé ?)");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur d'enregistrement.");
     }
     setSaving(false);
   }
@@ -306,12 +324,12 @@ export default function AdminPage() {
               <div className="space-y-3">
                 {projects.map((p) => (
                   <div key={p.id} className="flex items-center gap-4 border border-gray-100 rounded-xl p-3">
-                    <div className="w-14 h-14 rounded-lg bg-ternary/20 flex items-center justify-center overflow-hidden shrink-0">
+                    <button type="button" onClick={() => setPreviewProject(p)} title="Aperçu du rendu sur le site" className="w-14 h-14 rounded-lg bg-ternary/20 flex items-center justify-center overflow-hidden shrink-0 cursor-zoom-in hover:ring-2 hover:ring-ternary transition-shadow">
                       {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <span className="text-ternary font-title">{p.title[0]}</span>}
-                    </div>
+                    </button>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-secondary">{p.title} <span className="text-xs text-gray-400">#{p.sort_order}</span></div>
-                      <div className="text-xs text-gray-500 truncate">{p.description_en}</div>
+                      <div className="text-xs text-text-sec truncate">{p.description_en}</div>
                       <div className="text-xs text-ternary">{p.techs}</div>
                     </div>
                     <button onClick={() => setEditProject(p)} className="text-secondary underline text-sm">Modifier</button>
@@ -335,10 +353,10 @@ export default function AdminPage() {
               <div className="space-y-3">
                 {members.map((m) => (
                   <div key={m.id} className="flex items-center gap-4 border border-gray-100 rounded-xl p-3">
-                    <div className="w-14 h-14 rounded-full bg-secondary/10 bg-cover bg-top shrink-0" style={{ backgroundImage: `url(${m.photo_url})` }} />
+                    <button type="button" onClick={() => setPreviewMember(m)} title="Aperçu du rendu sur le site" className="w-14 h-14 rounded-full bg-secondary/10 bg-cover bg-top shrink-0 cursor-zoom-in hover:ring-2 hover:ring-ternary transition-shadow" style={{ backgroundImage: `url(${m.photo_url})` }} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-secondary">{m.name}</div>
-                      <div className="text-xs text-gray-500">{m.role_en}</div>
+                      <div className="text-xs text-text-sec">{m.role_en}</div>
                     </div>
                     <button onClick={() => setEditMember({ ...m, socials: parseSocials(m.socials) })} className="text-secondary underline text-sm">Modifier</button>
                     <button onClick={() => remove("team", m.id)} className="text-red-500 underline text-sm">Supprimer</button>
@@ -365,7 +383,19 @@ export default function AdminPage() {
                         {m.read ? "Marquer non lu" : "Marquer lu"}
                       </button>
                     </div>
-                    <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{m.message}</p>
+                    <p className="text-sm text-secondary mt-2 whitespace-pre-wrap">{m.message}</p>
+                    {m.attachment_id && m.attachment_name ? (
+                      <a
+                        href={`/api/files/${m.attachment_id}`}
+                        className="mt-2 inline-flex items-center gap-1.5 text-sm text-secondary underline hover:text-ternary"
+                        download
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4" aria-hidden>
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                        </svg>
+                        {m.attachment_name} ({m.attachment_size != null && m.attachment_size > 1048576 ? `${(m.attachment_size / 1048576).toFixed(1)} Mo` : `${Math.max(1, Math.round((m.attachment_size ?? 0) / 1024))} Ko`})
+                      </a>
+                    ) : null}
                   </div>
                 ))}
                 {!messages.length && <p className="text-gray-400 text-sm">Aucun message.</p>}
@@ -396,7 +426,7 @@ export default function AdminPage() {
                         ) : null}
                         {a.id === user.id ? <span className="ml-2 text-xs text-gray-400">(vous)</span> : null}
                       </div>
-                      <div className="text-xs text-gray-500 truncate">{a.email}</div>
+                      <div className="text-xs text-text-sec truncate">{a.email}</div>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {a.role === "superadmin" ? (
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary/10 text-secondary">Tous les droits</span>
@@ -458,8 +488,14 @@ export default function AdminPage() {
               />
               <p className="text-xs text-text-sec mt-1">PNG, JPG, WebP ou SVG — paysage, min 640×360 px (idéal ~1600×900), 5 Mo max.</p>
               {uploadingImg && <p className="text-xs text-ternary font-semibold mt-1">Envoi de l'image…</p>}
+              {imgMsg && <p className={`text-xs mt-1 font-semibold ${imgMsg.ok ? "text-green-600" : "text-red-500"}`}>{imgMsg.text}</p>}
               {editProject.image_url ? (
-                <img src={editProject.image_url} alt="Aperçu" className="mt-2 h-20 w-auto rounded-lg object-cover border border-gray-200" />
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={editProject.image_url} alt="Aperçu" className="h-20 w-auto rounded-lg object-cover border border-gray-200" />
+                  <button type="button" onClick={() => setPreviewProject({ ...EMPTY_PROJECT, ...editProject } as Project)} className="text-xs px-3 py-1.5 rounded-full border border-secondary text-secondary font-semibold hover:bg-secondary hover:text-white transition-colors">
+                    Aperçu sur le site
+                  </button>
+                </div>
               ) : null}
             </Field>
             <Field label="Ordre"><input type="number" className="w-full border rounded px-3 py-2" value={editProject.sort_order ?? 0} onChange={(e) => setEditProject({ ...editProject, sort_order: Number(e.target.value) })} /></Field>
@@ -487,8 +523,14 @@ export default function AdminPage() {
               />
               <p className="text-xs text-text-sec mt-1">Min 360×360 px — idéal : carré ≥ 500×500.</p>
               {uploadingImg && <p className="text-xs text-ternary font-semibold mt-1">Envoi…</p>}
+              {imgMsg && <p className={`text-xs mt-1 font-semibold ${imgMsg.ok ? "text-green-600" : "text-red-500"}`}>{imgMsg.text}</p>}
               {editMember.photo_url ? (
-                <img src={editMember.photo_url} alt="Aperçu" className="mt-2 w-14 h-14 rounded-full object-cover border border-gray-200" />
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={editMember.photo_url} alt="Aperçu" className="w-14 h-14 rounded-full object-cover object-top border border-gray-200" />
+                  <button type="button" onClick={() => setPreviewMember({ photo_url: editMember.photo_url!, name: editMember.name ?? "", role_fr: editMember.role_fr ?? "" })} className="text-xs px-3 py-1.5 rounded-full border border-secondary text-secondary font-semibold hover:bg-secondary hover:text-white transition-colors">
+                    Aperçu sur le site
+                  </button>
+                </div>
               ) : null}
             </Field>
             <Field label="Ordre"><input type="number" className="w-full border rounded px-3 py-2" value={editMember.sort_order ?? 0} onChange={(e) => setEditMember({ ...editMember, sort_order: Number(e.target.value) })} /></Field>
@@ -577,6 +619,40 @@ export default function AdminPage() {
           </Field>
           )}
         </EditModal>
+      )}
+
+      {/* ── Aperçu du rendu image tel qu'affiché sur le site ── */}
+      {previewMember && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={() => setPreviewMember(null)}>
+          <div className="bg-secondary rounded-2xl shadow-2xl p-8 md:p-10 flex flex-col items-center space-y-5 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <p className="text-ternary-light text-xs uppercase tracking-widest font-semibold self-start">Aperçu — section Équipe</p>
+            {/* Réplique exacte du rendu : cercle bg-top/bg-cover + voile violet 70% */}
+            <div
+              className="w-52 h-52 md:w-60 md:h-60 rounded-full bg-top bg-cover shadow-lg"
+              style={{ backgroundImage: `url(${previewMember.photo_url})` }}
+            >
+              <div
+                className="rounded-full w-full h-full opacity-70"
+                style={{ background: "linear-gradient(rgb(var(--secondary) / 0.4), rgb(var(--secondary-light) / 0.4))" }}
+              />
+            </div>
+            <div className="text-gray-100 flex flex-col items-center">
+              <span className="font-bold text-xl">{previewMember.name || "Nom du membre"}</span>
+              <span className="text-sm text-gray-200">{previewMember.role_fr || "Rôle"}</span>
+            </div>
+            <button onClick={() => setPreviewMember(null)} className="text-sm text-gray-300 underline">Fermer</button>
+          </div>
+        </div>
+      )}
+      {previewProject && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={() => setPreviewProject(null)}>
+          <div className="max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <p className="text-gray-300 text-xs uppercase tracking-widest font-semibold mb-3">Aperçu — carte projet</p>
+            {/* Vraie carte ProjectCard */}
+            <ProjectCard lang="fr" p={previewProject as CmsProject} />
+            <button onClick={() => setPreviewProject(null)} className="mt-3 text-sm text-gray-300 underline">Fermer</button>
+          </div>
+        </div>
       )}
     </div>
   );
